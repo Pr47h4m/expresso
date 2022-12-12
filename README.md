@@ -1,7 +1,7 @@
 # expresso
 ## Fast, unopinionated, minimalist web framework for [Go](https://go.dev)
 
-<br>
+Expresso is a web framework written in Go (GoLang).
 
 ### Examples
 
