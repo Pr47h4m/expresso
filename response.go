@@ -3,21 +3,30 @@ package expresso
 import (
 	"encoding/json"
 	"encoding/xml"
-	"os"
-
 	"net/http"
+	"os"
 	"strconv"
 )
 
+// Response wraps the standard http.ResponseWriter, providing additional methods
+// to facilitate sending various types of responses, including JSON, HTML, XML, files,
+// and handling response status codes. The Response struct is tightly coupled with
+// the Context to log status codes and other response details.
 type Response struct {
-	w http.ResponseWriter
-	*Context
+	w        http.ResponseWriter // The original HTTP response writer.
+	*Context                     // The context in which the response is being generated.
 }
 
+// responseFromHttpResponseWriter creates a new Response object from an http.ResponseWriter.
+// This function initializes a Response with the provided ResponseWriter, allowing further
+// processing and response handling.
 func responseFromHttpResponseWriter(w http.ResponseWriter) Response {
 	return Response{w: w}
 }
 
+// Send writes the provided data to the HTTP response. It determines the content type
+// based on the type of data and sets the appropriate headers. It supports plain text,
+// JSON, HTML, XML, and files.
 func (r Response) Send(data interface{}) {
 	var bs []byte
 	switch data := data.(type) {
@@ -54,6 +63,10 @@ func (r Response) Send(data interface{}) {
 	}
 }
 
+// Formatted sends the response based on the client's Accept header.
+// It checks the Accept header in the request and sends the appropriate
+// response format (text, HTML, JSON, or XML). If the Accept header does not
+// match any of the specified formats, a default response is sent.
 func (r Response) Formatted(req *http.Request, data Formatted) {
 	accept := req.Header.Get("Accept")
 	switch accept {
@@ -70,6 +83,9 @@ func (r Response) Formatted(req *http.Request, data Formatted) {
 	}
 }
 
+// Status sets the HTTP status code for the response and logs it.
+// The status code is added to the response headers and also logged
+// through the associated Context.
 func (r Response) Status(code int) Response {
 	log := r.Context.Logger()
 	log.StatusCode = code
@@ -77,12 +93,18 @@ func (r Response) Status(code int) Response {
 	return r
 }
 
+// SendStatus writes the HTTP status code directly to the response.
+// This method is used to send a response with a specific status code
+// without any body content. The status code is also logged.
 func (r Response) SendStatus(code int) {
 	log := r.Context.Logger()
 	log.StatusCode = code
 	r.w.WriteHeader(code)
 }
 
+// Redirect sends an HTTP redirect to the specified URL with the given status code.
+// It sets the "Location" header in the response and writes the status code, effectively
+// redirecting the client. The redirect status code is also logged.
 func (r Response) Redirect(url string, status int) {
 	log := r.Context.Logger()
 	log.StatusCode = status

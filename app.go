@@ -8,17 +8,24 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// Config holds server configuration settings such as read/write timeouts and maximum header bytes.
 type Config struct {
-	ReadTimeout    time.Duration
-	WriteTimeout   time.Duration
-	MaxHeaderBytes int
+	ReadTimeout    time.Duration // Maximum duration for reading the entire request, including the body.
+	WriteTimeout   time.Duration // Maximum duration before timing out writes of the response.
+	MaxHeaderBytes int           // Maximum number of bytes the server will read parsing the request header.
 }
 
+// App is the main structure of the application, encapsulating the router and server configuration.
 type App struct {
-	router *httprouter.Router
-	Config
+	router *httprouter.Router // HTTP request router.
+	Config                    // Server configuration settings.
 }
 
+// DefaultApp creates and returns an App instance with default configurations.
+// Default Config values:
+//   - ReadTimeout: 10 seconds
+//   - WriteTimeout: 10 seconds
+//   - MaxHeaderBytes: 1MB (1 << 20 bytes)
 func DefaultApp() App {
 	return App{
 		router: httprouter.New(),
@@ -30,6 +37,7 @@ func DefaultApp() App {
 	}
 }
 
+// NewApp creates and returns an App instance with custom configuration settings provided by the user.
 func NewApp(c Config) App {
 	return App{
 		router: httprouter.New(),
@@ -37,6 +45,7 @@ func NewApp(c Config) App {
 	}
 }
 
+// ListenAndServe starts the HTTP server on the specified address with the settings provided in the App's Config.
 func (a App) ListenAndServe(addr string) error {
 	server := http.Server{
 		Addr:           addr,
@@ -48,6 +57,7 @@ func (a App) ListenAndServe(addr string) error {
 	return server.ListenAndServe()
 }
 
+// ListenAndServeTLS starts the HTTPS server with the given certificate and key files on the specified address.
 func (a App) ListenAndServeTLS(addr, certFile, keyFile string) error {
 	server := http.Server{
 		Addr:           addr,
@@ -59,64 +69,77 @@ func (a App) ListenAndServeTLS(addr, certFile, keyFile string) error {
 	return server.ListenAndServeTLS(certFile, keyFile)
 }
 
+// HEAD registers a HEAD request handler for the specified path with optional middleware.
 func (a App) HEAD(path string, middlewares ...Middleware) {
 	a.router.HEAD(path, handle(middlewares))
 }
 
+// OPTIONS registers an OPTIONS request handler for the specified path with optional middleware.
 func (a App) OPTIONS(path string, middlewares ...Middleware) {
 	a.router.OPTIONS(path, handle(middlewares))
 }
 
+// GET registers a GET request handler for the specified path with optional middleware.
 func (a App) GET(path string, middlewares ...Middleware) {
 	a.router.GET(path, handle(middlewares))
 }
 
+// POST registers a POST request handler for the specified path with optional middleware.
 func (a App) POST(path string, middlewares ...Middleware) {
 	a.router.POST(path, handle(middlewares))
-
 }
 
+// PATCH registers a PATCH request handler for the specified path with optional middleware.
 func (a App) PATCH(path string, middlewares ...Middleware) {
 	a.router.PATCH(path, handle(middlewares))
-
 }
 
+// PUT registers a PUT request handler for the specified path with optional middleware.
 func (a App) PUT(path string, middlewares ...Middleware) {
 	a.router.PUT(path, handle(middlewares))
-
 }
 
+// DELETE registers a DELETE request handler for the specified path with optional middleware.
 func (a App) DELETE(path string, middlewares ...Middleware) {
 	a.router.DELETE(path, handle(middlewares))
 }
 
+// ServeStatic serves static files from the provided directory for the specified path.
 func (a App) ServeStatic(path string, root http.Dir) {
 	a.router.ServeFiles(path, root)
 }
 
+// HandleNotFound sets up a custom 404 Not Found handler with optional middleware.
+// Note: Implementation pending.
 func (a App) HandleNotFound(middlewares ...Middleware) {
 	// TODO: HandleNotFound
 }
 
+// HandleError sets up a custom error handler with optional middleware.
+// Note: Implementation pending.
 func (a App) HandleError(middlewares ...Middleware) {
 	// TODO: HandleError
 }
 
+// handle is a helper function that processes a list of middleware and invokes them sequentially.
 func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		req := requestFromHttpRequest(r)
-		res := responseFromHttpResponseWriter(w)
-		if req != nil {
-			req.Params = p
+		req := requestFromHttpRequest(r)         // Convert the incoming HTTP request to a custom request type.
+		res := responseFromHttpResponseWriter(w) // Convert the response writer to a custom response type.
 
+		if req != nil {
+			req.Params = p // Attach the URL parameters to the request.
+
+			// Initialize the context for middleware processing.
 			ctx := &Context{
 				Request:  req,
 				Response: res,
 				Extras:   map[interface{}]interface{}{},
 				goNext:   false,
 			}
-			ctx.Response.Context = ctx
+			ctx.Response.Context = ctx // Link the response to the context.
 
+			// Execute the middleware chain.
 			for _, middleware := range middlewares {
 				middleware(ctx)
 				if !ctx.goNext {
@@ -125,8 +148,10 @@ func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, h
 				ctx.goNext = false
 			}
 
+			// Log the response context if needed.
 			ctx.Logger().Dump()
 		} else {
+			// Handle errors if the request couldn't be processed.
 			res.Status(500).Formatted(r, Formatted{
 				Text: Text{
 					Text: "Error - Unable to process the request",
