@@ -115,6 +115,7 @@ func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, h
 				Extras:   map[interface{}]interface{}{},
 				goNext:   false,
 			}
+			ctx.Response.Context = ctx
 
 			for _, middleware := range middlewares {
 				middleware(ctx)

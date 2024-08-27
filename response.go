@@ -11,10 +11,11 @@ import (
 
 type Response struct {
 	w http.ResponseWriter
+	*Context
 }
 
 func responseFromHttpResponseWriter(w http.ResponseWriter) Response {
-	return Response{w}
+	return Response{w: w}
 }
 
 func (r Response) Send(data interface{}) {
@@ -70,15 +71,21 @@ func (r Response) Formatted(req *http.Request, data Formatted) {
 }
 
 func (r Response) Status(code int) Response {
+	log := r.Context.Logger()
+	log.StatusCode = code
 	r.w.Header().Add("Status", strconv.Itoa(code))
 	return r
 }
 
 func (r Response) SendStatus(code int) {
+	log := r.Context.Logger()
+	log.StatusCode = code
 	r.w.WriteHeader(code)
 }
 
 func (r Response) Redirect(url string, status int) {
+	log := r.Context.Logger()
+	log.StatusCode = status
 	r.w.Header().Add("Location", url)
 	r.w.WriteHeader(status)
 }
