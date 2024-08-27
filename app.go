@@ -123,6 +123,8 @@ func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, h
 				}
 				ctx.goNext = false
 			}
+
+			ctx.Logger().Dump()
 		} else {
 			res.Status(500).Formatted(r, Formatted{
 				Text: Text{
