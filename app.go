@@ -127,44 +127,20 @@ func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, h
 		req := requestFromHttpRequest(r)         // Convert the incoming HTTP request to a custom request type.
 		res := responseFromHttpResponseWriter(w) // Convert the response writer to a custom response type.
 
-		if req != nil {
-			req.Params = p // Attach the URL parameters to the request.
+		if req == nil {
 
-			// Initialize the context for middleware processing.
-			ctx := &Context{
-				Request:  req,
-				Response: res,
-				Extras:   map[interface{}]interface{}{},
-				goNext:   false,
-			}
-			ctx.Response.Context = ctx // Link the response to the context.
-
-			// Execute the middleware chain.
-			for _, middleware := range middlewares {
-				middleware(ctx)
-				if !ctx.goNext {
-					break
-				}
-				ctx.goNext = false
-			}
-
-			// Log the response context if needed.
-			ctx.Logger().Dump()
-		} else {
 			// Handle errors if the request couldn't be processed.
 			res.Status(500).Formatted(r, Formatted{
-				Text: Text{
-					Text: "Error - Unable to process the request",
+				Text: &Text{"Error - Unable to process the request"},
+				HTML: &HTML{"<html><head><title>Error - Unable to process the request</title></head><body>Error - Unable to process the request</body></html>"},
+				JSON: &JSON{
+					Data: map[string]interface{}{
+						"status": 500,
+						"error":  "Unable to process the request",
+					},
 				},
-				HTML: HTML{
-					HTML: "<html><head><title>Error - Unable to process the request</title></head><body>Error - Unable to process the request</body></html>",
-				},
-				JSON: JSON{
-					"status": 500,
-					"error":  "Unable to process the request",
-				},
-				XML: XML{
-					XML: struct {
+				XML: &XML{
+					Data: struct {
 						XMLName xml.Name `xml:"error"`
 						Status  int      `xml:"status"`
 						Error   string   `xml:"error"`
@@ -173,11 +149,45 @@ func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, h
 						Error:  "Unable to process the request",
 					},
 				},
-				Default: JSON{
-					"status": 500,
-					"error":  "Unable to process the request",
+				YAML: &YAML{
+					Data: map[string]interface{}{
+						"status": 500,
+						"error":  "Unable to process the request",
+					},
+				},
+				Default: &JSON{
+					Data: map[string]interface{}{
+						"status": 500,
+						"error":  "Unable to process the request",
+					},
 				},
 			})
+
+			return
 		}
+
+		req.Params = p // Attach the URL parameters to the request.
+
+		// Initialize the context for middleware processing.
+		ctx := &Context{
+			Request:  req,
+			Response: res,
+			Extras:   map[interface{}]interface{}{},
+			goNext:   false,
+		}
+		ctx.Response.Context = ctx // Link the response to the context.
+
+		// Execute the middleware chain.
+		for _, middleware := range middlewares {
+			middleware(ctx)
+			if !ctx.goNext {
+				break
+			}
+			ctx.goNext = false
+		}
+
+		// Log the response context if needed.
+		ctx.Logger().Dump()
+
 	}
 }

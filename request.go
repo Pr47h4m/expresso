@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -26,15 +25,8 @@ type Request struct {
 // requestFromHttpRequest creates a new Request object from an http.Request.
 // It reads the request body and parses it into a byte slice, along with other request details.
 func requestFromHttpRequest(r *http.Request) *Request {
-	// Retrieve the Content-Length header and parse it to determine the size of the request body.
-	cLen := r.Header.Get("Content-Length")
-	n, _ := strconv.ParseInt(cLen, 0, 64)
-
-	// Allocate a byte slice to hold the request body.
-	bs := make([]byte, n)
-
 	// Read the body into the byte slice.
-	if _, err := r.Body.Read(bs); err == nil || errors.Is(err, io.EOF) {
+	if bs, err := io.ReadAll(r.Body); err == nil || errors.Is(err, io.EOF) {
 		return &Request{
 			RawRequest:  r,
 			Path:        r.URL,

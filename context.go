@@ -1,5 +1,7 @@
 package expresso
 
+import "sync"
+
 // Context represents the context of a request, holding the request and response objects,
 // along with additional data and control flags used during middleware processing.
 type Context struct {
@@ -8,14 +10,15 @@ type Context struct {
 	Extras   map[interface{}]interface{} // A map for storing additional data that may be used across middlewares.
 	goNext   bool                        // A flag to control the flow of middleware execution.
 	logger   *Logger                     // A lazy-loaded logger associated with the current request.
+	once     sync.Once                   // Ensures the logger is initialized only once.
 }
 
 // Logger returns the logger associated with the current context.
 // If the logger is not yet initialized, it creates a new one using the request details.
 func (c *Context) Logger() *Logger {
-	if c.logger == nil {
+	c.once.Do(func() {
 		c.logger = NewLogger(c.Request) // Lazy-load the logger if it hasn't been initialized.
-	}
+	})
 	return c.logger
 }
 

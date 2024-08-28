@@ -7,9 +7,9 @@ import (
 
 // Log levels constants used to indicate the severity of log messages.
 const (
-	LogLevelInfo  = "INFO"  // Informational messages.
-	LogLevelError = "ERROR" // Error messages indicating something went wrong.
-	LogLevelDebug = "DEBUG" // Debug messages for development and troubleshooting.
+	LogLevelInfo  = "INFO"
+	LogLevelError = "ERROR"
+	LogLevelDebug = "DEBUG"
 )
 
 // Log represents a single log entry with a severity level and a message.
@@ -37,17 +37,22 @@ func NewLogger(req *Request) *Logger {
 
 // Info adds an informational log entry to the Logger.
 func (l *Logger) Info(message string) {
-	l.logs = append(l.logs, Log{Level: LogLevelInfo, Message: message})
+	l.addLog(LogLevelInfo, message)
 }
 
 // Error adds an error log entry to the Logger.
 func (l *Logger) Error(message string) {
-	l.logs = append(l.logs, Log{Level: LogLevelError, Message: message})
+	l.addLog(LogLevelError, message)
 }
 
 // Debug adds a debug log entry to the Logger.
 func (l *Logger) Debug(message string) {
-	l.logs = append(l.logs, Log{Level: LogLevelDebug, Message: message})
+	l.addLog(LogLevelDebug, message)
+}
+
+// addLog is a helper function to append a log entry to the logs slice.
+func (l *Logger) addLog(level, message string) {
+	l.logs = append(l.logs, Log{Level: level, Message: message})
 }
 
 // Dump prints all the logged messages to the console, formatted with colors
@@ -60,55 +65,57 @@ func (l *Logger) Dump() {
 
 	logStr := "+---\n" // Start log dump with a separator line.
 
-	// Colorize and format the HTTP method.
-	switch l.Method {
-	case "GET":
-		logStr += "\033[0;32m" + "| GET" + "\033[0m" + " "
-	case "POST":
-		logStr += "\033[0;33m" + "| POST" + "\033[0m" + " "
-	case "PUT":
-		logStr += "\033[0;34m" + "| PUT" + "\033[0m" + " "
-	case "DELETE":
-		logStr += "\033[0;35m" + "| DELETE" + "\033[0m" + " "
-	case "PATCH":
-		logStr += "\033[0;36m" + "| PATCH" + "\033[0m" + " "
-	case "OPTIONS":
-		logStr += "\033[0;37m" + "| OPTIONS" + "\033[0m" + " "
-	case "HEAD":
-		logStr += "\033[0;38m" + "| HEAD" + "\033[0m" + " "
-	case "TRACE":
-		logStr += "\033[0;39m" + "| TRACE" + "\033[0m" + " "
-	case "CONNECT":
-		logStr += "\033[0;40m" + "| CONNECT" + "\033[0m" + " "
-	case "LINK":
-		logStr += "\033[0;41m" + "| LINK" + "\033[0m" + " "
-	case "UNLINK":
-		logStr += "\033[0;42m" + "| UNLINK" + "\033[0m" + " "
-	default:
-		logStr += "\033[0;43m" + "| UNKNOWN" + "\033[0m" + " "
-	}
+	// Append the request method, path, and status code.
+	logStr += fmt.Sprintf("%s %s %s\n", l.colorizeMethod(), l.Path, l.colorizeStatusCode())
 
-	// Append the request path and status code, colorized based on the status range.
-	logStr += fmt.Sprint(l.Path, " ")
-
-	if l.StatusCode >= 200 && l.StatusCode < 300 {
-		logStr += "\033[0;32m" + fmt.Sprint(l.StatusCode) + "\033[0m" + "\n"
-	} else if l.StatusCode >= 300 {
-		logStr += "\033[0;35m" + fmt.Sprint(l.StatusCode) + "\033[0m" + "\n"
-	}
-
-	// Print each log entry with color based on its level.
+	// Append each log entry with color based on its level.
 	for _, log := range l.logs {
-		switch log.Level {
-		case LogLevelInfo:
-			logStr += "\033[0;32m" + "| " + log.Level + "\033[0m" + " "
-		case LogLevelError:
-			logStr += "\033[0;31m" + "| " + log.Level + "\033[0m" + " "
-		case LogLevelDebug:
-			logStr += "\033[0;34m" + "| " + log.Level + "\033[0m" + " "
-		}
-		logStr += log.Message + "\n"
+		logStr += fmt.Sprintf("%s %s\n", l.colorizeLevel(log.Level), log.Message)
 	}
+
 	logStr += "+---" // End log dump with a separator line.
 	fmt.Println(logStr)
+}
+
+// colorizeMethod returns the colored string based on the HTTP method.
+func (l *Logger) colorizeMethod() string {
+	colorMap := map[string]string{
+		"GET":     "\033[0;32mGET\033[0m",
+		"POST":    "\033[0;33mPOST\033[0m",
+		"PUT":     "\033[0;34mPUT\033[0m",
+		"DELETE":  "\033[0;35mDELETE\033[0m",
+		"PATCH":   "\033[0;36mPATCH\033[0m",
+		"OPTIONS": "\033[0;37mOPTIONS\033[0m",
+		"HEAD":    "\033[0;38mHEAD\033[0m",
+		"TRACE":   "\033[0;39mTRACE\033[0m",
+		"CONNECT": "\033[0;40mCONNECT\033[0m",
+		"LINK":    "\033[0;41mLINK\033[0m",
+		"UNLINK":  "\033[0;42mUNLINK\033[0m",
+	}
+	if color, found := colorMap[l.Method]; found {
+		return "|" + color
+	}
+	return "| \033[0;43mUNKNOWN\033[0m"
+}
+
+// colorizeStatusCode returns the colored string based on the HTTP status code.
+func (l *Logger) colorizeStatusCode() string {
+	switch {
+	case l.StatusCode >= 200 && l.StatusCode < 300:
+		return fmt.Sprintf("\033[0;32m%d\033[0m", l.StatusCode)
+	case l.StatusCode >= 300:
+		return fmt.Sprintf("\033[0;35m%d\033[0m", l.StatusCode)
+	default:
+		return fmt.Sprintf("%d", l.StatusCode)
+	}
+}
+
+// colorizeLevel returns the colored string based on the log level.
+func (l *Logger) colorizeLevel(level string) string {
+	colorMap := map[string]string{
+		LogLevelInfo:  "\033[0;32m| INFO\033[0m",
+		LogLevelError: "\033[0;31m| ERROR\033[0m",
+		LogLevelDebug: "\033[0;34m| DEBUG\033[0m",
+	}
+	return colorMap[level]
 }
