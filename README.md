@@ -1,4 +1,6 @@
 # expresso
+[![Go Reference](https://pkg.go.dev/badge/github.com/pr47h4m/expresso.svg)](https://pkg.go.dev/github.com/pr47h4m/expresso)
+
 ## Fast, unopinionated, minimalist web framework for [Go](https://go.dev)
 
 Expresso is a web framework written in Go (GoLang).
