@@ -80,22 +80,22 @@ func (l *Logger) Dump() {
 // colorizeMethod returns the colored string based on the HTTP method.
 func (l *Logger) colorizeMethod() string {
 	colorMap := map[string]string{
-		"GET":     "\033[0;32mGET\033[0m",
-		"POST":    "\033[0;33mPOST\033[0m",
-		"PUT":     "\033[0;34mPUT\033[0m",
-		"DELETE":  "\033[0;35mDELETE\033[0m",
-		"PATCH":   "\033[0;36mPATCH\033[0m",
-		"OPTIONS": "\033[0;37mOPTIONS\033[0m",
-		"HEAD":    "\033[0;38mHEAD\033[0m",
-		"TRACE":   "\033[0;39mTRACE\033[0m",
-		"CONNECT": "\033[0;40mCONNECT\033[0m",
-		"LINK":    "\033[0;41mLINK\033[0m",
-		"UNLINK":  "\033[0;42mUNLINK\033[0m",
+		"GET":     "\033[0;32m| GET\033[0m",
+		"POST":    "\033[0;33m| POST\033[0m",
+		"PUT":     "\033[0;34m| PUT\033[0m",
+		"DELETE":  "\033[0;35m| DELETE\033[0m",
+		"PATCH":   "\033[0;36m| PATCH\033[0m",
+		"OPTIONS": "\033[0;37m| OPTIONS\033[0m",
+		"HEAD":    "\033[0;38m| HEAD\033[0m",
+		"TRACE":   "\033[0;39m| TRACE\033[0m",
+		"CONNECT": "\033[0;40m| CONNECT\033[0m",
+		"LINK":    "\033[0;41m| LINK\033[0m",
+		"UNLINK":  "\033[0;42m| UNLINK\033[0m",
 	}
 	if color, found := colorMap[l.Method]; found {
-		return "|" + color
+		return color
 	}
-	return "| \033[0;43mUNKNOWN\033[0m"
+	return "| \033[0;43m UNKNOWN\033[0m"
 }
 
 // colorizeStatusCode returns the colored string based on the HTTP status code.
