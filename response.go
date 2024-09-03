@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"net/http"
 	"os"
+	"strconv"
 
 	"gopkg.in/yaml.v3"
 )
@@ -54,14 +55,18 @@ func (r Response) Send(data interface{}) {
 
 	if err != nil {
 		// Log the error and send an internal server error response
+		r.Context.Logger().Error(err.Error())
 		r.Status(http.StatusInternalServerError).SendStatus(http.StatusInternalServerError)
 		return
 	}
 
 	r.w.Header().Set("x-powered-by", "Expresso")
 
-	// Write status code if not already written
-	if r.Context.Logger().StatusCode == 0 {
+	status := r.w.Header().Get("Status")
+	if status != "" {
+		code, _ := strconv.Atoi(status)
+		r.w.WriteHeader(code)
+	} else {
 		r.w.WriteHeader(http.StatusOK)
 	}
 
@@ -98,6 +103,7 @@ func (r Response) Formatted(req *http.Request, data Formatted) {
 // Status sets the HTTP status code for the response and logs it.
 func (r Response) Status(code int) Response {
 	r.Context.Logger().StatusCode = code
+	r.w.Header().Set("Status", strconv.Itoa(code))
 	return r
 }
 
