@@ -132,7 +132,6 @@ func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, h
 		res := responseFromHttpResponseWriter(w) // Convert the response writer to a custom response type.
 
 		if req == nil {
-
 			// Handle errors if the request couldn't be processed.
 			res.Status(500).Formatted(r, Formatted{
 				Text: &Text{"Error - Unable to process the request"},
@@ -192,6 +191,5 @@ func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, h
 
 		// Log the response context if needed.
 		ctx.Logger().Dump()
-
 	}
 }
