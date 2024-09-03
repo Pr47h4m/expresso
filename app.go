@@ -1,6 +1,7 @@
 package expresso
 
 import (
+	"crypto/tls"
 	"encoding/xml"
 	"net/http"
 	"time"
@@ -17,8 +18,9 @@ type Config struct {
 
 // App is the main structure of the application, encapsulating the router and server configuration.
 type App struct {
-	router *httprouter.Router // HTTP request router.
-	Config                    // Server configuration settings.
+	router    *httprouter.Router // HTTP request router.
+	Config                       // Server configuration settings.
+	TLSConfig *tls.Config        // TLS configuration for HTTPS server.
 }
 
 // DefaultApp creates and returns an App instance with default configurations.
@@ -38,10 +40,11 @@ func DefaultApp() App {
 }
 
 // NewApp creates and returns an App instance with custom configuration settings provided by the user.
-func NewApp(c Config) App {
+func NewApp(c Config, t *tls.Config) App {
 	return App{
-		router: httprouter.New(),
-		Config: c,
+		router:    httprouter.New(),
+		Config:    c,
+		TLSConfig: t,
 	}
 }
 
@@ -65,6 +68,7 @@ func (a App) ListenAndServeTLS(addr, certFile, keyFile string) error {
 		ReadTimeout:    a.Config.ReadTimeout,
 		WriteTimeout:   a.Config.WriteTimeout,
 		MaxHeaderBytes: a.Config.MaxHeaderBytes,
+		TLSConfig:      a.TLSConfig,
 	}
 	return server.ListenAndServeTLS(certFile, keyFile)
 }
