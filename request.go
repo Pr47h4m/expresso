@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -25,16 +27,26 @@ type Request struct {
 // requestFromHttpRequest creates a new Request object from an http.Request.
 // It reads the request body and parses it into a byte slice, along with other request details.
 func requestFromHttpRequest(r *http.Request) *Request {
-	// Read the body into the byte slice.
-	if bs, err := io.ReadAll(r.Body); err == nil || errors.Is(err, io.EOF) {
-		return &Request{
-			RawRequest:  r,
-			Path:        r.URL,
-			Method:      r.Method,
-			Headers:     r.Header,
-			Body:        bs,
-			QueryParams: r.URL.Query(),
+	req := &Request{
+		RawRequest:  r,
+		Path:        r.URL,
+		Method:      r.Method,
+		Headers:     r.Header,
+		QueryParams: r.URL.Query(),
+	}
+
+	cType := strings.Split(r.Header.Get("Content-Type"), ";")[0]
+
+	if slices.Contains([]string{"application/json", "application/xml"}, cType) {
+		// Read the body into the byte slice.
+		if bs, err := io.ReadAll(r.Body); err == nil || errors.Is(err, io.EOF) {
+			req.Body = bs
+		}
+	} else if cType == "application/x-www-form-urlencoded" {
+		// Parse the form data into the query parameters.
+		if err := r.ParseForm(); err == nil {
+			req.QueryParams = r.Form
 		}
 	}
-	return nil // Return nil if the body could not be read.
+	return req // Return nil if the body could not be read.
 }
