@@ -114,8 +114,11 @@ func (a App) ServeStatic(path string, root http.FileSystem) {
 }
 
 // HandleNotFound sets up a custom 404 Not Found handler with optional middleware.
-func (a App) HandleNotFound(handler http.Handler) {
-	a.router.NotFound = handler
+func (a App) HandleNotFound(middlewares ...Middleware) {
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handle(middlewares)(w, r, nil)
+	})
+	a.router.NotFound = h
 }
 
 // HandleError sets up a custom error handler with optional middleware.
