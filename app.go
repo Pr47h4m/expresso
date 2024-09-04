@@ -109,20 +109,18 @@ func (a App) DELETE(path string, middlewares ...Middleware) {
 }
 
 // ServeStatic serves static files from the provided directory for the specified path.
-func (a App) ServeStatic(path string, root http.Dir) {
+func (a App) ServeStatic(path string, root http.FileSystem) {
 	a.router.ServeFiles(path, root)
 }
 
 // HandleNotFound sets up a custom 404 Not Found handler with optional middleware.
-// Note: Implementation pending.
-func (a App) HandleNotFound(middlewares ...Middleware) {
-	// TODO: HandleNotFound
+func (a App) HandleNotFound(handler http.Handler) {
+	a.router.NotFound = handler
 }
 
 // HandleError sets up a custom error handler with optional middleware.
-// Note: Implementation pending.
-func (a App) HandleError(middlewares ...Middleware) {
-	// TODO: HandleError
+func (a App) HandleError(handler func(http.ResponseWriter, *http.Request, interface{})) {
+	a.router.PanicHandler = handler
 }
 
 // handle is a helper function that processes a list of middleware and invokes them sequentially.
