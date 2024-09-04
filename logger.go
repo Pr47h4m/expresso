@@ -3,6 +3,7 @@ package expresso
 import (
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 // Log levels constants used to indicate the severity of log messages.
@@ -70,6 +71,7 @@ func (l *Logger) Dump() {
 
 	// Append each log entry with color based on its level.
 	for _, log := range l.logs {
+		log.Message = strings.ReplaceAll(strings.Trim(log.Message, "\n"), "\n", "\n| ")
 		logStr += fmt.Sprintf("%s %s\n", l.colorizeLevel(log.Level), log.Message)
 	}
 
@@ -95,7 +97,7 @@ func (l *Logger) colorizeMethod() string {
 	if color, found := colorMap[l.Method]; found {
 		return color
 	}
-	return "| \033[0;43m UNKNOWN\033[0m"
+	return "\033[0;43m| UNKNOWN\033[0m"
 }
 
 // colorizeStatusCode returns the colored string based on the HTTP status code.
