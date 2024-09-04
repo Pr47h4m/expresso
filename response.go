@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -31,14 +32,24 @@ func (r Response) Send(data interface{}) {
 	var bs []byte
 	var err error
 
+	l := r.Logger()
 	switch data := data.(type) {
 	case Text:
 		r.w.Header().Set("Content-Type", "text/plain")
 		bs = []byte(data.Content)
+	case *Text:
+		r.w.Header().Set("Content-Type", "text/plain")
+		bs = []byte(data.Content)
 	case JSON:
 		r.w.Header().Set("Content-Type", "application/json")
-		bs, err = json.Marshal(data)
+		bs, err = json.Marshal(data.Data)
+	case *JSON:
+		r.w.Header().Set("Content-Type", "application/json")
+		bs, err = json.Marshal(data.Data)
 	case HTML:
+		r.w.Header().Set("Content-Type", "text/html")
+		bs = []byte(data.Content)
+	case *HTML:
 		r.w.Header().Set("Content-Type", "text/html")
 		bs = []byte(data.Content)
 	case File:
@@ -47,10 +58,18 @@ func (r Response) Send(data interface{}) {
 		// Handle Template rendering here (if implemented)
 	case XML:
 		r.w.Header().Set("Content-Type", "application/xml")
-		bs, err = xml.Marshal(data)
+		bs, err = xml.Marshal(data.Data)
+	case *XML:
+		r.w.Header().Set("Content-Type", "application/xml")
+		bs, err = xml.Marshal(data.Data)
 	case YAML:
 		r.w.Header().Set("Content-Type", "application/x-yaml")
 		bs, err = yaml.Marshal(data.Data)
+	case *YAML:
+		r.w.Header().Set("Content-Type", "application/x-yaml")
+		bs, err = yaml.Marshal(data.Data)
+	default:
+		l.Error("Unsupported response type")
 	}
 
 	if err != nil {
@@ -83,7 +102,7 @@ func (r Response) Send(data interface{}) {
 
 // Formatted sends the response based on the client's Accept header.
 func (r Response) Formatted(req *http.Request, data Formatted) {
-	accept := req.Header.Get("Accept")
+	accept := strings.Split(req.Header.Get("Accept"), ",")[0]
 	switch accept {
 	case "text/plain":
 		r.Send(data.Text)
@@ -102,20 +121,20 @@ func (r Response) Formatted(req *http.Request, data Formatted) {
 
 // Status sets the HTTP status code for the response and logs it.
 func (r Response) Status(code int) Response {
-	r.Context.Logger().StatusCode = code
+	r.Logger().StatusCode = code
 	r.w.Header().Set("Status", strconv.Itoa(code))
 	return r
 }
 
 // SendStatus writes the HTTP status code directly to the response.
 func (r Response) SendStatus(code int) {
-	r.Context.Logger().StatusCode = code
+	r.Logger().StatusCode = code
 	r.w.WriteHeader(code)
 }
 
 // Redirect sends an HTTP redirect to the specified URL with the given status code.
 func (r Response) Redirect(url string, status int) {
-	r.Context.Logger().StatusCode = status
+	r.Logger().StatusCode = status
 	r.w.Header().Set("Location", url)
 	r.w.WriteHeader(status)
 }
