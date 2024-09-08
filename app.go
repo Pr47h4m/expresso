@@ -178,6 +178,7 @@ func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, h
 			Response: res,
 			Extras:   map[interface{}]interface{}{},
 			goNext:   false,
+			Logger:   NewLogger(req),
 		}
 		ctx.Response.Context = ctx // Link the response to the context.
 
@@ -191,6 +192,6 @@ func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, h
 		}
 
 		// Log the response context if needed.
-		ctx.Logger().Dump()
+		ctx.Dump()
 	}
 }

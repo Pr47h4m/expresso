@@ -32,7 +32,6 @@ func (r Response) Send(data interface{}) {
 	var bs []byte
 	var err error
 
-	l := r.Logger()
 	switch data := data.(type) {
 	case Text:
 		r.w.Header().Set("Content-Type", "text/plain")
@@ -69,12 +68,12 @@ func (r Response) Send(data interface{}) {
 		r.w.Header().Set("Content-Type", "application/x-yaml")
 		bs, err = yaml.Marshal(data.Data)
 	default:
-		l.Error("Unsupported response type")
+		r.Context.Error("Unsupported response type")
 	}
 
 	if err != nil {
 		// Log the error and send an internal server error response
-		r.Context.Logger().Error(err.Error())
+		r.Context.Error(err.Error())
 		r.Status(http.StatusInternalServerError).SendStatus(http.StatusInternalServerError)
 		return
 	}
@@ -121,20 +120,20 @@ func (r Response) Formatted(req *http.Request, data Formatted) {
 
 // Status sets the HTTP status code for the response and logs it.
 func (r Response) Status(code int) Response {
-	r.Logger().StatusCode = code
+	r.Context.StatusCode = code
 	r.w.Header().Set("Status", strconv.Itoa(code))
 	return r
 }
 
 // SendStatus writes the HTTP status code directly to the response.
 func (r Response) SendStatus(code int) {
-	r.Logger().StatusCode = code
+	r.Context.StatusCode = code
 	r.w.WriteHeader(code)
 }
 
 // Redirect sends an HTTP redirect to the specified URL with the given status code.
 func (r Response) Redirect(url string, status int) {
-	r.Logger().StatusCode = status
+	r.Context.StatusCode = status
 	r.w.Header().Set("Location", url)
 	r.w.WriteHeader(status)
 }
