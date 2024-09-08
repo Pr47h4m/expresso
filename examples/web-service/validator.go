@@ -8,10 +8,9 @@ import (
 )
 
 func ValidateAPIKey(ctx *expresso.Context) {
-	log := ctx.Logger()
 	key := ctx.Headers.Get("api-key")
 	if key == "" {
-		log.Info("api-key not found in headers, checking query params")
+		ctx.Info("api-key not found in headers, checking query params")
 		key = ctx.QueryParams.Get("api-key")
 	}
 
@@ -25,7 +24,7 @@ func ValidateAPIKey(ctx *expresso.Context) {
 	}
 
 	if keyMatched {
-		log.Debug("api-key matched")
+		ctx.Debug("api-key matched")
 		ctx.Next()
 	} else {
 		ctx.Status(http.StatusUnauthorized).Formatted(ctx.RawRequest, expresso.Formatted{
