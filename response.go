@@ -74,7 +74,7 @@ func (r Response) Send(data interface{}) {
 	if err != nil {
 		// Log the error and send an internal server error response
 		r.Context.Error(err.Error())
-		r.Status(http.StatusInternalServerError).SendStatus(http.StatusInternalServerError)
+		r.SendStatus(http.StatusInternalServerError)
 		return
 	}
 
@@ -92,10 +92,13 @@ func (r Response) Send(data interface{}) {
 	case Template:
 		err = data.Tmpl.Execute(r.w, data.Data)
 		if err != nil {
-			r.Status(http.StatusInternalServerError).SendStatus(http.StatusInternalServerError)
+			r.SendStatus(http.StatusInternalServerError)
 		}
 	default:
-		r.w.Write(bs)
+		if _, err := r.w.Write(bs); err != nil {
+			r.Context.Error(err.Error())
+			return
+		}
 	}
 }
 
