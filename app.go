@@ -29,14 +29,11 @@ type App struct {
 //   - WriteTimeout: 10 seconds
 //   - MaxHeaderBytes: 1MB (1 << 20 bytes)
 func DefaultApp() App {
-	return App{
-		router: httprouter.New(),
-		Config: Config{
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			MaxHeaderBytes: 1 << 20,
-		},
-	}
+	return NewApp(Config{
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}, nil)
 }
 
 // NewApp creates and returns an App instance with custom configuration settings provided by the user.
