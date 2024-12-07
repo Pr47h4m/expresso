@@ -46,7 +46,7 @@ func NewApp(c Config, t *tls.Config) App {
 }
 
 // ListenAndServe starts the HTTP server on the specified address with the settings provided in the App's Config.
-func (a App) ListenAndServe(addr string) error {
+func (a App) ListenAndServe(addr string, cb func(error)) error {
 	server := http.Server{
 		Addr:           addr,
 		Handler:        a.router,
@@ -54,11 +54,15 @@ func (a App) ListenAndServe(addr string) error {
 		WriteTimeout:   a.Config.WriteTimeout,
 		MaxHeaderBytes: a.Config.MaxHeaderBytes,
 	}
-	return server.ListenAndServe()
+	err := server.ListenAndServe()
+	if cb != nil {
+		cb(err)
+	}
+	return err
 }
 
 // ListenAndServeTLS starts the HTTPS server with the given certificate and key files on the specified address.
-func (a App) ListenAndServeTLS(addr, certFile, keyFile string) error {
+func (a App) ListenAndServeTLS(addr, certFile, keyFile string, cb func(error)) error {
 	server := http.Server{
 		Addr:           addr,
 		Handler:        a.router,
@@ -67,7 +71,11 @@ func (a App) ListenAndServeTLS(addr, certFile, keyFile string) error {
 		MaxHeaderBytes: a.Config.MaxHeaderBytes,
 		TLSConfig:      a.TLSConfig,
 	}
-	return server.ListenAndServeTLS(certFile, keyFile)
+	err := server.ListenAndServeTLS(certFile, keyFile)
+	if cb != nil {
+		cb(err)
+	}
+	return err
 }
 
 // HEAD registers a HEAD request handler for the specified path with optional middleware.
