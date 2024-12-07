@@ -1,9 +1,5 @@
 github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
-github.com/pr47h4m/expresso v0.0.7 h1:YMkXJpA0dAAKWC9KLf1m3PhRK+9EFkZGB97yH1vaQH0=
-github.com/pr47h4m/expresso v0.0.7/go.mod h1:/bGsaehqrn44D5F0NVUx5vu2fCLIXC1W1pHqNApMkXY=
-github.com/pr47h4m/expresso v0.0.10 h1:JeVI8X3wSGr8PD6C3/nYiJMXAsppF+sF0gRv7y9R6rU=
-github.com/pr47h4m/expresso v0.0.10/go.mod h1:/bGsaehqrn44D5F0NVUx5vu2fCLIXC1W1pHqNApMkXY=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
