@@ -78,39 +78,43 @@ func (a App) ListenAndServeTLS(addr, certFile, keyFile string, cb func(error)) e
 	return err
 }
 
+func (a App) CORS(cors Cors) {
+	a.router.OPTIONS(cors.Path, handle(NewCorsHandler(cors)))
+}
+
 // HEAD registers a HEAD request handler for the specified path with optional middleware.
 func (a App) HEAD(path string, middlewares ...Middleware) {
-	a.router.HEAD(path, handle(middlewares))
+	a.router.HEAD(path, handle(middlewares...))
 }
 
 // OPTIONS registers an OPTIONS request handler for the specified path with optional middleware.
 func (a App) OPTIONS(path string, middlewares ...Middleware) {
-	a.router.OPTIONS(path, handle(middlewares))
+	a.router.OPTIONS(path, handle(middlewares...))
 }
 
 // GET registers a GET request handler for the specified path with optional middleware.
 func (a App) GET(path string, middlewares ...Middleware) {
-	a.router.GET(path, handle(middlewares))
+	a.router.GET(path, handle(middlewares...))
 }
 
 // POST registers a POST request handler for the specified path with optional middleware.
 func (a App) POST(path string, middlewares ...Middleware) {
-	a.router.POST(path, handle(middlewares))
+	a.router.POST(path, handle(middlewares...))
 }
 
 // PATCH registers a PATCH request handler for the specified path with optional middleware.
 func (a App) PATCH(path string, middlewares ...Middleware) {
-	a.router.PATCH(path, handle(middlewares))
+	a.router.PATCH(path, handle(middlewares...))
 }
 
 // PUT registers a PUT request handler for the specified path with optional middleware.
 func (a App) PUT(path string, middlewares ...Middleware) {
-	a.router.PUT(path, handle(middlewares))
+	a.router.PUT(path, handle(middlewares...))
 }
 
 // DELETE registers a DELETE request handler for the specified path with optional middleware.
 func (a App) DELETE(path string, middlewares ...Middleware) {
-	a.router.DELETE(path, handle(middlewares))
+	a.router.DELETE(path, handle(middlewares...))
 }
 
 // ServeStatic serves static files from the provided directory for the specified path.
@@ -121,7 +125,7 @@ func (a App) ServeStatic(path string, root http.FileSystem) {
 // HandleNotFound sets up a custom 404 Not Found handler with optional middleware.
 func (a App) HandleNotFound(middlewares ...Middleware) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handle(middlewares)(w, r, nil)
+		handle(middlewares...)(w, r, nil)
 	})
 	a.router.NotFound = h
 }
@@ -132,7 +136,7 @@ func (a App) HandleError(handler func(http.ResponseWriter, *http.Request, interf
 }
 
 // handle is a helper function that processes a list of middleware and invokes them sequentially.
-func handle(middlewares []Middleware) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func handle(middlewares ...Middleware) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		req := requestFromHttpRequest(r)         // Convert the incoming HTTP request to a custom request type.
 		res := responseFromHttpResponseWriter(w) // Convert the response writer to a custom response type.
