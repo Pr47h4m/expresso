@@ -16,6 +16,7 @@ import (
 // and handling response status codes. The Response struct is tightly coupled with
 // the Context to log status codes and other response details.
 type Response struct {
+	Headers  http.Header
 	w        http.ResponseWriter // The original HTTP response writer.
 	*Context                     // The context in which the response is being generated.
 }
@@ -31,6 +32,10 @@ func responseFromHttpResponseWriter(w http.ResponseWriter) Response {
 func (r Response) Send(data interface{}) {
 	var bs []byte
 	var err error
+
+	for k, v := range r.Headers {
+		r.w.Header().Set(k, strings.Join(v, ","))
+	}
 
 	switch data := data.(type) {
 	case Text:
