@@ -23,7 +23,7 @@ type Response struct {
 
 // responseFromHttpResponseWriter creates a new Response object from an http.ResponseWriter.
 func responseFromHttpResponseWriter(w http.ResponseWriter) Response {
-	return Response{w: w}
+	return Response{Headers: http.Header{}, w: w}
 }
 
 // Send writes the provided data to the HTTP response. It determines the content type
