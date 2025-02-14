@@ -79,7 +79,10 @@ func (a App) ListenAndServeTLS(addr, certFile, keyFile string, cb func(error)) e
 }
 
 func (a App) CORS(cors Cors) {
-	a.router.OPTIONS(cors.Path, handle(NewCorsHandler(cors)))
+	handler := func(ctx *Context) {
+		ctx.SendStatus(http.StatusOK)
+	}
+	a.router.OPTIONS(cors.Path, handle(NewCorsHandler(cors), handler))
 }
 
 // HEAD registers a HEAD request handler for the specified path with optional middleware.
