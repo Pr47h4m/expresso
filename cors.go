@@ -11,7 +11,7 @@ func NewCorsHandler(cors Cors) Middleware {
 	return func(ctx *Context) {
 		ctx.Response.Headers.Set("access-control-allow-origin", cors.Origin)
 		ctx.Response.Headers.Set("access-control-allow-methods", cors.Methods)
-		ctx.Response.Headers.Set("access-control-allow-headers", cors.Methods)
+		ctx.Response.Headers.Set("access-control-allow-headers", cors.Headers)
 		ctx.Next()
 	}
 }
