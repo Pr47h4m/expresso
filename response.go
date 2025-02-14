@@ -136,12 +136,22 @@ func (r Response) Status(code int) Response {
 // SendStatus writes the HTTP status code directly to the response.
 func (r Response) SendStatus(code int) {
 	r.Context.StatusCode = code
+
+	for k, v := range r.Headers {
+		r.w.Header().Set(k, strings.Join(v, ","))
+	}
+
 	r.w.WriteHeader(code)
 }
 
 // Redirect sends an HTTP redirect to the specified URL with the given status code.
 func (r Response) Redirect(url string, status int) {
 	r.Context.StatusCode = status
+
+	for k, v := range r.Headers {
+		r.w.Header().Set(k, strings.Join(v, ","))
+	}
+
 	r.w.Header().Set("Location", url)
 	r.w.WriteHeader(status)
 }
